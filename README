@@ -1,0 +1,20 @@
+terrain.c : a program to create an 80x21 map with multiple biomes, north-south and east-west paths, 
+and a pokecenter and pokemart.
+
+Author : Mason Hart (mphart)
+
+Running this program : 'make run' in the terminal
+
+Terrain Generation : The terrain is represented by a character array of size 80*21. 
+When a terrain is generated, seeds are randomly placed around the map, with certain types being more common than others. 
+Next, spots are randomly selected and if they are not blank they will fill the surrounding nonempty squares. 
+Next, the border of rock is generated. Finally, the two paths and two buildings are then placed.
+Legend :
+# path
+% rock
+: tall grass
+. short grass
+^ tree
+~ water
+M pokemart
+C pokecenter
