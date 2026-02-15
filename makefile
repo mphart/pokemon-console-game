@@ -1,12 +1,12 @@
 CFLAGS = -Wall
 CLIB = -lm
-CFILES = terrain.c main.c
-HFILES = terrain.h
+CFILES = map.c main.c world.c
+HFILES = map.h world.h
 
 all: build
 
 build:
-	gcc $(CLIB) $(CFLAGS) $(HFILES) $(CFILES) -o main
+	gcc $(CFLAGS) $(HFILES) $(CFILES) -o main $(CLIB)
 
 clean:
 	rm -f ./main

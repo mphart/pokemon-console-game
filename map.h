@@ -1,5 +1,5 @@
-#ifndef TERRAIN_H
-#define TERRAIN_H
+#ifndef MAP_HEADER
+#define MAP_HEADER
 
 #define MAP_W 80
 #define MAP_H 21
@@ -15,9 +15,16 @@
 #include <time.h>
 #include <stdbool.h>
 
-char* gen_terrain();
-char* seed_terrain(int seed);
-void print_terrain(char* terrain);
-void destroy_terrain(char* terrain);
+typedef struct {
+    char* terrain;
+    int nGate;
+    int wGate;
+    int eGate;
+    int sGate;
+} map_t;
+
+map_t gen_map(int,int,int,int,int);
+void print_map(map_t);
+void destroy_map(map_t);
 
 #endif

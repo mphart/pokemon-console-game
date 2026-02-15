@@ -1,0 +1,13 @@
+version 1.01
+    created project
+
+version 1.02
+    renamed terrain.h, terrain.c to map.h, map.c
+    wrapped terrain (char array) in new map_t types
+    created world_t type, including an array of map_t and an x and y coordinate
+    map_t type now keeps track of all path entry points
+    main can no longer access map.c 
+    added input in main.c
+    added moving between maps
+    added flying to arbitrary maps
+    made pokemart generation rarer
