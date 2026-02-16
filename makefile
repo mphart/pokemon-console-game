@@ -1,7 +1,7 @@
 CFLAGS = -Wall
 CLIB = -lm
-CFILES = map.c main.c world.c
-HFILES = map.h world.h
+CFILES = map.c world.c queue.c heap.c main.c
+HFILES = map.h world.h queue.h heap.h
 
 all: build
 
