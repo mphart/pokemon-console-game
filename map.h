@@ -12,6 +12,9 @@
 #define PATH_Y_START 3
 #define PATH_Y_RANGE (MAP_H - 2*PATH_Y_START)
 
+#define BUILDING_X_START 3
+#define BUILDING_X_RANGE (MAP_W - 2*BUILDING_X_START)
+
 #include "heap.h"
 
 #include <stdlib.h>
@@ -21,18 +24,40 @@
 #include <stdbool.h>
 
 typedef enum {
-    UNASSIGNED,
+    UNASSIGNED = 0,
     BOULDER,
     PRAIRIE,
     CLEARING,
     POND,
     FOREST,
     BORDER,
-    PATH
+    PATH,
+    GATE,
+    POKEMART,
+    POKECENTER
 } Biome;
+
+typedef enum {
+    NONE = 0,
+    PLAYER,
+    HIKER,
+    RIVAL,
+    SWIMMER,
+    OTHER
+} Character;
+
+static int terrainCost[6][11] = {
+    {0,0,0,0,0,0,0,0,0,0,0},
+    {0,INFINITY,20,10,INFINITY,INFINITY,INFINITY,10,10,10,10},
+    {0,15,15,10,INFINITY,15,INFINITY,10,INFINITY,50,50},
+    {0,INFINITY,20,10,INFINITY,INFINITY,INFINITY,10,INFINITY,50,50},
+    {0,INFINITY,INFINITY,INFINITY,7,INFINITY,INFINITY,INFINITY,INFINITY,INFINITY,INFINITY},
+    {0,INFINITY,20,10,INFINITY,INFINITY,INFINITY,10,INFINITY,50,50}
+};
 
 typedef struct {
     Biome type;
+    Character character;
 } tile_t;
 
 typedef struct {

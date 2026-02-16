@@ -93,7 +93,7 @@ int cost(map_t* map, int u, int v){
 	}
 	switch(vType){
 		case BORDER:
-			cost = 999999999;
+			cost = 9999;
 			break;
 		case BOULDER:
 			cost += 4;
@@ -111,18 +111,18 @@ int cost(map_t* map, int u, int v){
 			cost += 1;
 			break;
 		case PATH:
-			cost += 2;
+			cost += 1;
 			break;
 	}
 	return cost;
 }
 
 int place_path(map_t* map, int s, int t){
-	int *dist = calloc(MAP_W*MAP_H, sizeof(int));
-	int *prev = calloc(MAP_W*MAP_H, sizeof(int));
-	heap_t *h = heap_init(MAP_W*MAP_H);
+	int* dist = calloc(MAP_W*MAP_H, sizeof(int));
+	int* prev = calloc(MAP_W*MAP_H, sizeof(int));
+	heap_t* h = heap_init(MAP_W*MAP_H);
 	for(int i = 0; i < MAP_W*MAP_H; i++){
-		dist[i] = i == s ? 0 : __INT16_MAX__;
+		dist[i] = i == s ? 0 : INFINITY;
 		prev[i] = -1;
 		heap_insert(h, dist[i], i);
 	}
@@ -136,7 +136,7 @@ int place_path(map_t* map, int s, int t){
 		int left = tile_left(u);
 
 		int alt = dist[u] + cost(map, u, up);
-		if(up > 0 && alt < dist[up]){
+		if(up >= 0 && alt < dist[up]){
 			dist[up] = alt;
 			prev[up] = u;
 			heap_updatePriority(h,dist[up],up);
@@ -148,13 +148,13 @@ int place_path(map_t* map, int s, int t){
 			heap_updatePriority(h,dist[down],down);
 		}
 		alt = dist[u] + cost(map, u, right);
-		if(tile_id_to_x(right) < MAP_W && alt < dist[right]){
+		if(tile_id_to_x(right) > 0 && alt < dist[right]){
 			dist[right] = alt;
 			prev[right] = u;
 			heap_updatePriority(h,dist[right],right);
 		}
 		alt = dist[u] + cost(map, u, left);
-		if(tile_id_to_x(left) >= 0 && alt < dist[left]){
+		if(tile_id_to_x(left) < MAP_W - 1 && alt < dist[left]){
 			dist[left] = alt;
 			prev[left] = u;
 			heap_updatePriority(h,dist[left],left);
@@ -164,7 +164,8 @@ int place_path(map_t* map, int s, int t){
 	if(prev[t] == -1){
 		printf("fatal error: impossible to draw a path from %d to %d\n", s, t);
 	} else {
-		// printf("Cost to get to t: %d\n", dist[t]);
+		// printf("Cost to get from s(%d) to t(%d): %d\n", s,t,dist[t]);
+		t = prev[t];
 		while(t != s){
 			map->terrain[tile_id_to_y(t)][tile_id_to_x(t)].type = PATH;
 			t = prev[t];
@@ -175,6 +176,35 @@ int place_path(map_t* map, int s, int t){
 	free(prev);
 	heap_destroy(h);
 	return 0;
+}
+
+bool place_2by2(map_t* map, int sX, int sY, Biome type){
+	if(sY <= 0) return false;
+	if(sY+1 >= MAP_H-1) return false;
+	if(map->terrain[sY][sX].type == BORDER || map->terrain[sY][sX].type == PATH|| map->terrain[sY][sX].type == GATE) return false;
+	if(map->terrain[sY+1][sX].type == BORDER || map->terrain[sY+1][sX].type == PATH|| map->terrain[sY][sX].type == GATE) return false;
+	if(map->terrain[sY][sX+1].type == BORDER || map->terrain[sY][sX+1].type == PATH|| map->terrain[sY][sX].type == GATE) return false;
+	if(map->terrain[sY+1][sX+1].type == BORDER || map->terrain[sY+1][sX+1].type == PATH|| map->terrain[sY][sX].type == GATE) return false;
+	map->terrain[sY][sX].type = type;
+	map->terrain[sY+1][sX].type = type;
+	map->terrain[sY][sX+1].type = type;
+	map->terrain[sY+1][sX+1].type = type;
+	return true;
+}
+
+bool place_building(map_t* map, Biome type){
+	int startX = BUILDING_X_START + rand()%BUILDING_X_RANGE;
+	int startY = -1;
+	for(int i = 1; i < MAP_H; i++){
+		if(map->terrain[i][startX].type == PATH){
+			startY = i;
+			break;
+		}
+	}
+	if          (place_2by2(map, startX-2, startY-2, type)) return true;
+	else if     (place_2by2(map, startX-2, startY+1, type)) return true;
+	else if     (place_2by2(map, startX+1, startY-2, type)) return true;
+	else return place_2by2(map, startX+1, startY+1, type);
 }
 
 map_t* gen_map(int n, int s, int e, int w, int buildingChance){
@@ -223,6 +253,11 @@ map_t* gen_map(int n, int s, int e, int w, int buildingChance){
 	}
 
 	// place paths
+	bool fillN = n < 0;
+	bool fillS = s < 0;
+	bool fillW = w < 0;
+	bool fillE = e < 0;
+
 	int nsPathStart = n > 0 ? n : PATH_X_START + rand()%PATH_X_RANGE;
 	int nsPathEnd =   s > 0 ? s : PATH_X_START + rand()%PATH_X_RANGE;
 	int wePathStart = w > 0 ? w : PATH_Y_START + rand()%PATH_Y_RANGE;
@@ -233,15 +268,24 @@ map_t* gen_map(int n, int s, int e, int w, int buildingChance){
 	map->wGate = wePathStart;
 	map->eGate = wePathEnd;
 
-	map->terrain[0][nsPathStart].type = PATH;
-	map->terrain[MAP_H-1][nsPathEnd].type = PATH;
-	map->terrain[wePathStart][0].type = PATH;
-	map->terrain[wePathEnd][MAP_W-1].type = PATH;
+	if(!fillN) map->terrain[0][nsPathStart].type = GATE;
+	if(!fillS) map->terrain[MAP_H-1][nsPathEnd].type = GATE;
+	if(!fillW) map->terrain[wePathStart][0].type = GATE;
+	if(!fillE) map->terrain[wePathEnd][MAP_W-1].type = GATE;
 
 	place_path(map, tile_id(nsPathStart,0), tile_id(nsPathEnd,MAP_H-1));
 	place_path(map, tile_id(0,wePathStart), tile_id(MAP_W-1,wePathEnd));
 
 	// place pokecenter and pokemart
+	printf("building chance: %d\n", buildingChance);
+	bool placed = false;
+	if(rand() < buildingChance){
+		do{placed = place_building(map, POKEMART);} while(!placed);
+	}
+	placed = false;
+	if(rand() < buildingChance){
+		do{placed = place_building(map, POKECENTER);} while(!placed);
+	}
 
 	return map;
 }
@@ -278,6 +322,15 @@ int print_map(map_t* map){
 			case PATH:
 				printf("%c",'#');
 				break;
+			case GATE:
+				printf("%c",'#');
+				break;
+			case POKEMART:
+				printf("%c",'M');
+				break;
+			case POKECENTER:
+				printf("%c",'C');
+				break;
 			case UNASSIGNED:
 				printf("%c",' ');
 				break;
@@ -285,6 +338,7 @@ int print_map(map_t* map){
 				printf("\nUnknown type encountered when printing the map\n");
 				return 1;
 			}
+			Character c = map->terrain[h][w].character;
 		}
 		printf("\n");
 	}

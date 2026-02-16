@@ -9,13 +9,16 @@ int clamp(int n, int min, int max){
 }
 
 int dist_from_center(int x, int y){
-    int dx = x - WORLD_START_X;
-    int dy = y - WORLD_START_Y;
-    return abs(dx) + abs(dy);
+    int dx = abs(x - WORLD_START_X);
+    int dy = abs(y - WORLD_START_Y);
+    return dx > dy ? dx : dy;
 }
 
 int building_prob(int x, int y){
-    return RAND_MAX*(-45.*dist_from_center(x,y)/200 + 50)/100;
+    double d = dist_from_center(x,y);
+    double num = WORLD_W - d;
+    double den = WORLD_W;
+    return RAND_MAX * (num/den) / 2;
 }
 
 world_t* init_world(){

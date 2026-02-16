@@ -74,6 +74,7 @@ int heap_removeMin(heap_t* h){
 }
 
 void heap_destroy(heap_t* h){
+    free(h->key);
     free(h->data);
     free(h);
 }
