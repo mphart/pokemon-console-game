@@ -7,13 +7,13 @@
 #define WORLD_START_Y 200
 #define WORLD_LOC(x,y) y*WORLD_START_X+x
 
+#include "map.h"
+#include "character.h"
+
 #include <time.h>
 #include <math.h>
+#include <stdlib.h>
 
-#include "map.h"
-
-#define WORLD_W 401
-#define WORLD_H 401
 
 typedef enum{
     NORTH,
@@ -27,6 +27,9 @@ typedef struct {
     int x;
     int y;
     int seed;
+    character_t* player;
+    character_t* rival;
+    character_t* hiker;
 } world_t;
 
 world_t* init_world();

@@ -1,16 +1,18 @@
+Author : Mason Hart (mphart)
+
 main.c : a program to create a navicable world full of maps that connect via paths
 
 map.c : a program to create an 80x21 map with multiple biomes, north-south and east-west paths, 
 and a pokecenter and pokemart.
-
-Author : Mason Hart (mphart)
 
 Running this program : 'make run' in the terminal
 
 Terrain Generation : The terrain is represented by a character array of size 80*21. 
 When a terrain is generated, seeds are randomly placed around the map, with certain types being more common than others. 
 Next, spots are randomly selected and if they are not blank they will fill the surrounding nonempty squares. 
-Next, the border of rock is generated. Finally, the two paths and two buildings are then placed.
+Next, the border of rock is generated. Then, two paths are placed at random, linking up to nearby maps if applicable.
+Finally, up to one pokemart and up to one pokecenter is placed along the path.
+
 Legend :
 # path
 % rock
@@ -20,3 +22,8 @@ Legend :
 ~ water
 M pokemart
 C pokecenter
+
+world.c : a program to consolidate all maps in the world and keep track of high-level game logic
+
+character.c : a program to represent the PC and their rivals that can spawn in the world
+

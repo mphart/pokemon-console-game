@@ -1,6 +1,5 @@
 #include "world.h"
-#include <math.h>
-#include <stdlib.h>
+
 
 int clamp(int n, int min, int max){
     if(n < min) return min;
@@ -37,7 +36,12 @@ world_t* seed_world(int seed){
     for(int i = 0; i < WORLD_H; i++){
         world->maps[i] = calloc(WORLD_W, sizeof(map_t));
     }
-    world->maps[world->y][world->x] = *gen_map(0,0,0,0,building_prob(world->x,world->y));
+
+    world->player = character_init(PLAYER, -1, -1);
+    world->hiker = character_init(HIKER, -1, -1);
+    world->rival = character_init(RIVAL, -1, -1);
+
+    world_goto(world, 0, 0);
 
     return world;
 }
@@ -47,6 +51,11 @@ void destroy_world(world_t* world){
     //     free(world->maps[i]);
     // }
     free(world->maps);
+
+    free(world->player);
+    free(world->hiker);
+    free(world->rival);
+
     free(world);
 }
 
@@ -82,6 +91,37 @@ void world_goto(world_t* w, int x, int y){
         int sth = w->y+1 >= WORLD_H ? -1 : w->maps[w->y+1][w->x].nGate;
         int est = w->x+1 >= WORLD_W ? -1 : w->maps[w->y][w->x+1].wGate;
         int wst = w->x-1 < 0 ? -1        : w->maps[w->y][w->x-1].eGate;
+
+        srand(w->seed + 1 + w->y*WORLD_W+w->x);
         w->maps[w->y][w->x] = *gen_map(nth,sth,est,wst,building_prob(w->x,w->y));
     }
+
+
+    map_putCharacter(&w->maps[w->y][w->x], w->player) 
+    ? character_print(w->player)
+    : printf("Failed to place player\n");
+
+    w->hiker->map_x = w->player->map_x;
+    w->hiker->map_y = w->player->map_y;
+    
+    w->rival->map_x = w->player->map_x;
+    w->rival->map_y = w->player->map_y;
+
+    printf("Player Character Cost Map:\n");
+    costmap_t* costmap = character_getCostMap(w->player, &w->maps[w->y][w->x]);
+    character_displayCostMap(costmap);
+    character_destroyCostMap(costmap);
+    printf("\n");
+
+    printf("Hiker Cost Map:\n");
+    costmap = character_getCostMap(w->hiker, &w->maps[w->y][w->x]);
+    character_displayCostMap(costmap);
+    character_destroyCostMap(costmap);
+    printf("\n");
+
+    printf("Rival Cost Map:\n");
+    costmap = character_getCostMap(w->rival, &w->maps[w->y][w->x]);
+    character_displayCostMap(costmap);
+    character_destroyCostMap(costmap);
+    printf("\n");
 }

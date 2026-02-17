@@ -22,7 +22,7 @@ int tile_id_to_y(int id){
 	return id / MAP_W;
 }
 
-void flood_fill(map_t* map, int x, int y, Biome type, int depth){
+void flood_fill(map_t* map, int x, int y, TileType type, int depth){
 	if(depth < 0){
 		return;
 	} else {
@@ -34,7 +34,7 @@ void flood_fill(map_t* map, int x, int y, Biome type, int depth){
 	}
 }
 
-Biome random_biome(){
+TileType random_TileType(){
 	int randint = rand() % NUM_BIOMES;
 	if(randint == 0){
 		return BOULDER;
@@ -61,7 +61,7 @@ bool is_filled(map_t* map){
 	return true;
 }
 
-bool place_single(map_t* map, Biome type){
+bool place_single(map_t* map, TileType type){
 	int x = rand()%MAP_W;
 	int y = rand()%MAP_H;
 	if(map->terrain[y][x].type == BOULDER || map->terrain[y][x].type == POND){
@@ -72,10 +72,10 @@ bool place_single(map_t* map, Biome type){
 	}
 }
 
-int cost(map_t* map, int u, int v){
+int path_cost(map_t* map, int u, int v){
 	int cost = 1;
-	Biome uType = map->terrain[tile_id_to_y(u)][tile_id_to_x(u)].type;
-	Biome vType = map->terrain[tile_id_to_y(v)][tile_id_to_x(v)].type;
+	TileType uType = map->terrain[tile_id_to_y(u)][tile_id_to_x(u)].type;
+	TileType vType = map->terrain[tile_id_to_y(v)][tile_id_to_x(v)].type;
 	if(uType != vType){
 		cost += 2;
 	}
@@ -135,25 +135,25 @@ int place_path(map_t* map, int s, int t){
 		int right = tile_right(u);
 		int left = tile_left(u);
 
-		int alt = dist[u] + cost(map, u, up);
+		int alt = dist[u] + path_cost(map, u, up);
 		if(up >= 0 && alt < dist[up]){
 			dist[up] = alt;
 			prev[up] = u;
 			heap_updatePriority(h,dist[up],up);
 		}
-		alt = dist[u] + cost(map, u, down);
+		alt = dist[u] + path_cost(map, u, down);
 		if(down < MAP_H*MAP_W && alt < dist[down]){
 			dist[down] = alt;
 			prev[down] = u;
 			heap_updatePriority(h,dist[down],down);
 		}
-		alt = dist[u] + cost(map, u, right);
+		alt = dist[u] + path_cost(map, u, right);
 		if(tile_id_to_x(right) > 0 && alt < dist[right]){
 			dist[right] = alt;
 			prev[right] = u;
 			heap_updatePriority(h,dist[right],right);
 		}
-		alt = dist[u] + cost(map, u, left);
+		alt = dist[u] + path_cost(map, u, left);
 		if(tile_id_to_x(left) < MAP_W - 1 && alt < dist[left]){
 			dist[left] = alt;
 			prev[left] = u;
@@ -178,7 +178,7 @@ int place_path(map_t* map, int s, int t){
 	return 0;
 }
 
-bool place_2by2(map_t* map, int sX, int sY, Biome type){
+bool place_2by2(map_t* map, int sX, int sY, TileType type){
 	if(sY <= 0) return false;
 	if(sY+1 >= MAP_H-1) return false;
 	if(map->terrain[sY][sX].type == BORDER || map->terrain[sY][sX].type == PATH|| map->terrain[sY][sX].type == GATE) return false;
@@ -192,7 +192,7 @@ bool place_2by2(map_t* map, int sX, int sY, Biome type){
 	return true;
 }
 
-bool place_building(map_t* map, Biome type){
+bool place_building(map_t* map, TileType type){
 	int startX = BUILDING_X_START + rand()%BUILDING_X_RANGE;
 	int startY = -1;
 	for(int i = 1; i < MAP_H; i++){
@@ -213,7 +213,7 @@ map_t* gen_map(int n, int s, int e, int w, int buildingChance){
 
 	// place seeds randomly in 8 octrants of the map
 	int numOctrants = 8;
-	Biome octrants[] = {PRAIRIE, FOREST, CLEARING, POND, UNASSIGNED, PRAIRIE, UNASSIGNED, CLEARING};
+	TileType octrants[] = {PRAIRIE, FOREST, CLEARING, POND, UNASSIGNED, PRAIRIE, UNASSIGNED, CLEARING};
 	int startOctrant = rand() % numOctrants;
 	for(int i = 0; i < numOctrants; i++){
 		int row = i%2;
@@ -225,7 +225,7 @@ map_t* gen_map(int n, int s, int e, int w, int buildingChance){
 		int seedX = xStart + rand() % xRange;
 		int seedY = yStart + rand() % yRange;
 		int octrantIndex = (startOctrant + i) % numOctrants;
-		Biome seed = octrants[octrantIndex] == UNASSIGNED ? random_biome() : octrants[octrantIndex];
+		TileType seed = octrants[octrantIndex] == UNASSIGNED ? random_TileType() : octrants[octrantIndex];
 		map->terrain[seedY][seedX].type = seed;
 	}
 
@@ -233,13 +233,13 @@ map_t* gen_map(int n, int s, int e, int w, int buildingChance){
 	while(!is_filled(map)){
 		int x = rand()%MAP_W;
 		int y = rand()%MAP_H;
-		Biome type = map->terrain[y][x].type;
+		TileType type = map->terrain[y][x].type;
 		flood_fill(map, x, y, type, 1);
 	}
 
 	// place random trees and boulders
 	for(int i = 0; i < NUM_SINGLES; i++){
-		place_single(map, random_biome());
+		place_single(map, random_TileType());
 	}
 
 	// place border
@@ -277,7 +277,6 @@ map_t* gen_map(int n, int s, int e, int w, int buildingChance){
 	place_path(map, tile_id(0,wePathStart), tile_id(MAP_W-1,wePathEnd));
 
 	// place pokecenter and pokemart
-	printf("building chance: %d\n", buildingChance);
 	bool placed = false;
 	if(rand() < buildingChance){
 		do{placed = place_building(map, POKEMART);} while(!placed);
@@ -298,49 +297,74 @@ void destroy_map(map_t* m){
 int print_map(map_t* map){
 	for(int h = 0; h < MAP_H; h++){
 		for(int w = 0; w < MAP_W; w++){
-			Biome t = map->terrain[h][w].type;
-			switch (t)
+			char c;
+			TileType tType = map->terrain[h][w].type;
+			switch (tType)
 			{
 			case BORDER:
-				printf("%c",'%');
-				break;
 			case BOULDER:
-				printf("%c",'%');
+				c = '%';
 				break;
 			case PRAIRIE:
-				printf("%c",':');
+				c = ':';
 				break;
 			case CLEARING:
-				printf("%c",'.');
+				c = '.';
 				break;
 			case POND:
-				printf("%c",'~');
+				c = '~';
 				break;
 			case FOREST:
-				printf("%c",'^');
+				c = '^';
 				break;
 			case PATH:
-				printf("%c",'#');
-				break;
 			case GATE:
-				printf("%c",'#');
+				c = '#';
 				break;
 			case POKEMART:
-				printf("%c",'M');
+				c = 'M';
 				break;
 			case POKECENTER:
-				printf("%c",'C');
+				c = 'C';
 				break;
 			case UNASSIGNED:
-				printf("%c",' ');
+				c = ' ';
 				break;
 			default:
 				printf("\nUnknown type encountered when printing the map\n");
 				return 1;
 			}
-			Character c = map->terrain[h][w].character;
+			CharacterType cType = map->terrain[h][w].character;
+			switch (cType)
+			{
+			case PLAYER:
+				c = '@';
+				break;
+			case RIVAL:
+				c = 'R';
+				break;
+			case HIKER:
+				c = 'H';
+			default:
+				break;
+			}
+			printf("%c",c);
 		}
 		printf("\n");
 	}
 	return 0;
+}
+
+bool map_putCharacter(map_t* m, character_t* c){
+	for(int i = rand()%MAP_W-1; i < MAP_W; i++){
+		for(int j = 1; j < MAP_H - 1; j++){
+			if(m->terrain[j][i].type == PATH){
+				c->map_x = i;
+				c->map_y = j;
+				m->terrain[j][i].character = c->type;
+				return true;
+			}
+		}
+	}
+	return false;
 }

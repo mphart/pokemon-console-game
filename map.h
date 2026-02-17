@@ -23,6 +23,9 @@
 #include <time.h>
 #include <stdbool.h>
 
+typedef struct map_t map_t;
+#include "character.h"
+
 typedef enum {
     UNASSIGNED = 0,
     BOULDER,
@@ -35,42 +38,26 @@ typedef enum {
     GATE,
     POKEMART,
     POKECENTER
-} Biome;
-
-typedef enum {
-    NONE = 0,
-    PLAYER,
-    HIKER,
-    RIVAL,
-    SWIMMER,
-    OTHER
-} Character;
-
-static int terrainCost[6][11] = {
-    {0,0,0,0,0,0,0,0,0,0,0},
-    {0,INFINITY,20,10,INFINITY,INFINITY,INFINITY,10,10,10,10},
-    {0,15,15,10,INFINITY,15,INFINITY,10,INFINITY,50,50},
-    {0,INFINITY,20,10,INFINITY,INFINITY,INFINITY,10,INFINITY,50,50},
-    {0,INFINITY,INFINITY,INFINITY,7,INFINITY,INFINITY,INFINITY,INFINITY,INFINITY,INFINITY},
-    {0,INFINITY,20,10,INFINITY,INFINITY,INFINITY,10,INFINITY,50,50}
-};
+} TileType;
 
 typedef struct {
-    Biome type;
-    Character character;
+    TileType type;
+    CharacterType character;
 } tile_t;
 
-typedef struct {
+struct map_t {
     tile_t terrain[MAP_H][MAP_W];
     int nGate;
     int wGate;
     int eGate;
     int sGate;
     bool generated;
-} map_t;
+};
 
 map_t* gen_map(int,int,int,int,int);
 int print_map(map_t*);
 void destroy_map(map_t*);
+bool map_putCharacter(map_t* m, character_t* c);
+
 
 #endif

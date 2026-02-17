@@ -5,8 +5,8 @@
 int main(int argc, char **argv){
 
 	world_t* world = init_world();
-	
-	printf("Welcome to Pokemon! Check out the following commands to move:\n n : go north\n s : go south\n w : go east\n e : go west\n f x y : fly to map (x,y)\n");
+
+	//printf("Welcome to Pokemon! Check out the following commands to move:\n n : go north\n s : go south\n w : go east\n e : go west\n f x y : fly to map (x,y)\n");
 	display_world(world);
 
 	char cmd = ' ';

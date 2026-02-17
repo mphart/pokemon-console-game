@@ -11,3 +11,17 @@ version 1.02
     added moving between maps
     added flying to arbitrary maps
     made pokemart generation rarer
+
+version 1.03
+    rewrote a lot of the map generation code 
+        -map_t now contains a double array of tile_t, which contain a TileType enum
+        -biome seeds are placed in 8 different sections at random, then grown using flood_fill as before
+        -dijkstra's algorithm is used to place paths
+        -gates are now connected based on other generated maps
+        -no more segfault at world border
+    created new character_t type
+        -contains the map location and type of character_t
+    created new costmap_t type
+        -records the cost to get to every square from a given start square
+    world_t now keeps track of the player
+    for testing purposes world_t has a hiker and rival as well that are set at the player's location
