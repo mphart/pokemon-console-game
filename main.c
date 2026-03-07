@@ -3,12 +3,20 @@
 #include <stdio.h>
 
 int main(int argc, char **argv){
+	
+	int numtr = 10;
+	if(argc == 3 && strcmp(argv[1], "--numtrainers") == 0){
+		sscanf(argv[2], "%d", &numtr);
+	}
 
-	world_t* world = init_world();
-
-	//printf("Welcome to Pokemon! Check out the following commands to move:\n n : go north\n s : go south\n w : go east\n e : go west\n f x y : fly to map (x,y)\n");
+	printf("Num Trainers: %d\n", numtr);
+	
+	world_t* world = init_world(numtr);
 	display_world(world);
 
+/*
+ 	printf("Welcome to Pokemon! Check out the following commands to move:\n n : go north\n s : go south\n w : go east\n e : go west\n f x y : fly to map (x,y)\n");
+	display_world(world);
 	char cmd = ' ';
 	do {
 		cmd = getchar();
@@ -34,7 +42,8 @@ int main(int argc, char **argv){
 			display_world(world);
 		}
 
-	} while(cmd != 'q');
+	} while(cmd != 'q'); 
+**/
 
 	destroy_world(world);
 

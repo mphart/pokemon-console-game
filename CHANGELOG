@@ -22,6 +22,19 @@ version 1.03
     created new character_t type
         -contains the map location and type of character_t
     created new costmap_t type
-        -records the cost to get to every square from a given start square
+        -records the cost to get to every square from a given start square,
+	based on the type of the given character (ie player, hiker, rival,
+	etc)
     world_t now keeps track of the player
-    for testing purposes world_t has a hiker and rival as well that are set at the player's location
+    world.c now places the player on a random path tile, then prints out the
+    hiker and rival cost maps from the player's position 
+
+version 1.04
+    removed user input (fly, n, s, e, w)
+    added hiker and rival costmaps to map_t
+    added --numtrainers switch
+    added functionality to place trainers around the map
+    map_t stores a list of trainers
+    implemented character_move for all character types
+    world now updates in a loop, sequentially moving each character in the map
+    (except the player)

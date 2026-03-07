@@ -13,6 +13,7 @@
 #include <time.h>
 #include <math.h>
 #include <stdlib.h>
+#include <unistd.h>
 
 
 typedef enum{
@@ -24,16 +25,15 @@ typedef enum{
 
 typedef struct {
     map_t** maps;
+    int numTrainers;
     int x;
     int y;
     int seed;
     character_t* player;
-    character_t* rival;
-    character_t* hiker;
 } world_t;
 
-world_t* init_world();
-world_t* seed_world(int seed);
+world_t* init_world(int numTrainers);
+world_t* seed_world(int numTrainers, int seed);
 void world_move(world_t* w, Direction d);
 void world_goto(world_t* w, int x, int y);
 void destroy_world(world_t* w);

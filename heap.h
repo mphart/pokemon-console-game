@@ -1,7 +1,8 @@
 #ifndef HEAP_H
 #define HEAP_H
 
-#include <memory.h>
+#include <stdlib.h>
+#include <stdio.h>
 
 typedef struct {
     int* key;

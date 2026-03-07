@@ -6,6 +6,7 @@ map.c : a program to create an 80x21 map with multiple biomes, north-south and e
 and a pokecenter and pokemart.
 
 Running this program : 'make run' in the terminal
+If you want to set the number of trainers: 'make build' and './main --numtrainers {x}' in the terminal
 
 Terrain Generation : The terrain is represented by a character array of size 80*21. 
 When a terrain is generated, seeds are randomly placed around the map, with certain types being more common than others. 
@@ -25,5 +26,14 @@ C pokecenter
 
 world.c : a program to consolidate all maps in the world and keep track of high-level game logic
 
-character.c : a program to represent the PC and their rivals that can spawn in the world
+character.c : a program to represent the PC and their rivals that can spawn in the world. Provides the functionality for finding
+the distance maps from the character's position to every other square on the map. Contains functionality for moving NPCs.
 
+Adversarial Trainers : Trainers have been added to the game. A handful of them are added to every map, each with its own movement patterns
+Legend :
+r rival - moves toward the player
+h hiker - moves toward the player, can traverse most terrain
+p pacer - paces in one direction, turning around when stuck
+w wanderer - moves in one direction, turning around at the edge of the biome
+s sentry - stays put
+e explorer - same as wanderer, but crosses biome borders

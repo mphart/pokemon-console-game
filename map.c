@@ -100,7 +100,7 @@ int path_cost(map_t* map, int u, int v){
 			break;
 		case POND:
 			cost += 5;
-			break;
+		 	break;
 		case FOREST:
 			cost += 2;
 			break;
@@ -122,7 +122,7 @@ int place_path(map_t* map, int s, int t){
 	int* prev = calloc(MAP_W*MAP_H, sizeof(int));
 	heap_t* h = heap_init(MAP_W*MAP_H);
 	for(int i = 0; i < MAP_W*MAP_H; i++){
-		dist[i] = i == s ? 0 : INFINITY;
+		dist[i] = i == s ? 0 : 99999;
 		prev[i] = -1;
 		heap_insert(h, dist[i], i);
 	}
@@ -164,7 +164,7 @@ int place_path(map_t* map, int s, int t){
 	if(prev[t] == -1){
 		printf("fatal error: impossible to draw a path from %d to %d\n", s, t);
 	} else {
-		// printf("Cost to get from s(%d) to t(%d): %d\n", s,t,dist[t]);
+		//printf("Cost to get from s(%d) to t(%d): %d\n", s,t,dist[t]);
 		t = prev[t];
 		while(t != s){
 			map->terrain[tile_id_to_y(t)][tile_id_to_x(t)].type = PATH;
@@ -207,7 +207,7 @@ bool place_building(map_t* map, TileType type){
 	else return place_2by2(map, startX+1, startY+1, type);
 }
 
-map_t* gen_map(int n, int s, int e, int w, int buildingChance){
+map_t* gen_map(int n, int s, int e, int w, int buildingChance, int numTrainers){
 	map_t* map = calloc(1, sizeof(map_t));
 	map->generated = true;
 
@@ -286,15 +286,42 @@ map_t* gen_map(int n, int s, int e, int w, int buildingChance){
 		do{placed = place_building(map, POKECENTER);} while(!placed);
 	}
 
+	// place trainers
+	map->trainers = calloc(numTrainers, sizeof(character_t));
+	if(numTrainers > 0) map->trainers[0] = *character_init(RIVAL, -1, -1);
+	if(numTrainers > 1) map->trainers[1] = *character_init(HIKER, -1, -1);
+	for(int i = 2; i < numTrainers; i++){
+		int tr_type = 2+rand()%6;
+		map->trainers[i] = *character_init(tr_type, -1, -1);
+	}
+        
+	for(int i = 0; i < numTrainers; i++){
+		int x,y,cost;
+		do{
+			x = rand()%MAP_W;
+			y = rand()%MAP_H;
+			cost = map->terrain[y][x].type;
+		} while(terrainCost[map->trainers[i].type][cost] >= 99999 || map->terrain[y][x].character != NONE);
+		map->trainers[i].map_x = x;
+		map->trainers[i].map_y = y;
+		//printf("trainer %d (%d,%d)\n", map->trainers[i].type,x,y);
+		map->terrain[y][x].character = map->trainers[i].type;	
+	}	
+
 	return map;
 }
 
 void destroy_map(map_t* m){
 	free(m->terrain);
+	free(m->trainers);
 	free(m);
 }
 
 int print_map(map_t* map){
+//	for(int i = 0; i < MAP_W; i++){
+//		printf("%d",i%10);
+//	}
+//	printf("\n");
 	for(int h = 0; h < MAP_H; h++){
 		for(int w = 0; w < MAP_W; w++){
 			char c;
@@ -341,10 +368,23 @@ int print_map(map_t* map){
 				c = '@';
 				break;
 			case RIVAL:
-				c = 'R';
+				c = 'r';
 				break;
-			case HIKER:
-				c = 'H';
+			case HIKER:		
+				c = 'h';
+				break;
+			case PACER:
+				c = 'p';
+				break;
+			case WANDERER:
+				c = 'w';
+				break;
+			case SENTRY:
+				c = 's';
+				break;
+			case EXPLORER:
+				c = 'e';
+				break;
 			default:
 				break;
 			}
@@ -355,16 +395,23 @@ int print_map(map_t* map){
 	return 0;
 }
 
-bool map_putCharacter(map_t* m, character_t* c){
+bool map_putPlayer(map_t* m, character_t* player){
+	printf("puting player \n");
 	for(int i = rand()%MAP_W-1; i < MAP_W; i++){
 		for(int j = 1; j < MAP_H - 1; j++){
-			if(m->terrain[j][i].type == PATH){
-				c->map_x = i;
-				c->map_y = j;
-				m->terrain[j][i].character = c->type;
+			if(m->terrain[j][i].type == PATH && m->terrain[j][i].character == NONE){
+				m->terrain[j][i].character = PLAYER;
+				player->map_x = i;
+				player->map_y = j;
+	m->rivalMap = character_getCostMap(player, m, RIVAL);
+	m->hikerMap = character_getCostMap(player, m, HIKER);
+	m->otherMap = character_getCostMap(player, m, WANDERER);
 				return true;
 			}
 		}
 	}
 	return false;
+}
+bool map_removePlayer(map_t* m, character_t* player){
+	m->terrain[player->map_y][player->map_x].character = NONE;
 }

@@ -20,17 +20,18 @@ int building_prob(int x, int y){
     return RAND_MAX * (num/den) / 2;
 }
 
-world_t* init_world(){
-    return seed_world(time(NULL));
+world_t* init_world(int numTrainers){
+    return seed_world(numTrainers, time(NULL));
 }
 
-world_t* seed_world(int seed){
+world_t* seed_world(int numTrainers, int seed){
     srand(seed);
     world_t* world = calloc(1, sizeof(world_t));
     world->seed = seed;
 
     world->x = WORLD_START_X;
     world->y = WORLD_START_Y;
+    world->numTrainers = numTrainers;
 
     world->maps = calloc(WORLD_H, sizeof(map_t));
     for(int i = 0; i < WORLD_H; i++){
@@ -38,8 +39,6 @@ world_t* seed_world(int seed){
     }
 
     world->player = character_init(PLAYER, -1, -1);
-    world->hiker = character_init(HIKER, -1, -1);
-    world->rival = character_init(RIVAL, -1, -1);
 
     world_goto(world, 0, 0);
 
@@ -53,8 +52,6 @@ void destroy_world(world_t* world){
     free(world->maps);
 
     free(world->player);
-    free(world->hiker);
-    free(world->rival);
 
     free(world);
 }
@@ -82,6 +79,10 @@ void world_move(world_t* w, Direction d){
 }
 
 void world_goto(world_t* w, int x, int y){
+	if(w->maps[w->y][w->x].generated){
+		map_removePlayer(&w->maps[w->y][w->x], w->player);
+	}
+
     x = clamp(x, -WORLD_W/2, WORLD_W/2);
     y = clamp(y, -WORLD_H/2, WORLD_H/2);
     w->x = x + WORLD_W/2;
@@ -93,35 +94,17 @@ void world_goto(world_t* w, int x, int y){
         int wst = w->x-1 < 0 ? -1        : w->maps[w->y][w->x-1].eGate;
 
         srand(w->seed + 1 + w->y*WORLD_W+w->x);
-        w->maps[w->y][w->x] = *gen_map(nth,sth,est,wst,building_prob(w->x,w->y));
+        w->maps[w->y][w->x] = *gen_map(nth,sth,est,wst,building_prob(w->x,w->y),w->numTrainers); 
     }
 
 
-    map_putCharacter(&w->maps[w->y][w->x], w->player) 
-    ? character_print(w->player)
-    : printf("Failed to place player\n");
+    map_putPlayer(&w->maps[w->y][w->x], w->player);
 
-    w->hiker->map_x = w->player->map_x;
-    w->hiker->map_y = w->player->map_y;
-    
-    w->rival->map_x = w->player->map_x;
-    w->rival->map_y = w->player->map_y;
-
-    printf("Player Character Cost Map:\n");
-    costmap_t* costmap = character_getCostMap(w->player, &w->maps[w->y][w->x]);
-    character_displayCostMap(costmap);
-    character_destroyCostMap(costmap);
-    printf("\n");
-
-    printf("Hiker Cost Map:\n");
-    costmap = character_getCostMap(w->hiker, &w->maps[w->y][w->x]);
-    character_displayCostMap(costmap);
-    character_destroyCostMap(costmap);
-    printf("\n");
-
-    printf("Rival Cost Map:\n");
-    costmap = character_getCostMap(w->rival, &w->maps[w->y][w->x]);
-    character_displayCostMap(costmap);
-    character_destroyCostMap(costmap);
-    printf("\n");
+    while(true){
+	    for(int i = 0; i < w->numTrainers; i++){
+		character_move(&w->maps[w->y][w->x].trainers[i], &w->maps[w->y][w->x]);
+		usleep(250000);
+		
+    display_world(w);
+	}}
 }

@@ -6,6 +6,7 @@
 #define NUM_BIOMES 5
 #define NUM_SINGLES 30
 
+typedef struct map_t map_t;
 
 #define PATH_X_START 4
 #define PATH_X_RANGE (MAP_W - 2*PATH_X_START)
@@ -23,7 +24,6 @@
 #include <time.h>
 #include <stdbool.h>
 
-typedef struct map_t map_t;
 #include "character.h"
 
 typedef enum {
@@ -52,12 +52,23 @@ struct map_t {
     int eGate;
     int sGate;
     bool generated;
+    character_t *trainers;
+    struct costmap_t *rivalMap;
+    struct costmap_t *hikerMap;
+    struct costmap_t *otherMap;
 };
 
-map_t* gen_map(int,int,int,int,int);
+map_t* gen_map(int,int,int,int,int,int);
 int print_map(map_t*);
 void destroy_map(map_t*);
-bool map_putCharacter(map_t* m, character_t* c);
-
+bool map_putPlayer(map_t* m, character_t* player);
+bool map_removePlayer(map_t* m, character_t* player);
+int tile_up(int);
+int tile_down(int);
+int tile_right(int);
+int tile_left(int);
+int tile_id(int x, int y);
+int tile_id_to_x(int);
+int tile_id_to_y(int);
 
 #endif
